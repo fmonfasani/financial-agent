@@ -1,0 +1,3 @@
+slack_bolt
+yfinance
+psycopg2-binary
