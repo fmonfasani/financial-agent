@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
-import os, psycopg2
-
-# Carga variables
+import os
+import psycopg2
 from dotenv import load_dotenv
+
 load_dotenv(".env")
 
-conn = psycopg2.connect(os.environ["DATABASE_URL"])
-cur  = conn.cursor()
+DATABASE_URL = os.environ["DATABASE_URL"]
 
-for path in ("sql/create_tables.sql", "sql/functions.sql"):
-    print("Ejecutando", path)
-    with open(path) as f:
-        statements = [s for s in f.read().split(";") if s.strip()]
-        for stmt in statements:
-            cur.execute(stmt)
+def run_script(cur, path):
+    with open(path, 'r') as f:
+        cur.execute(f.read())
 
-conn.commit()
-cur.close()
-conn.close()
-print("✅ Tablas y funciones creadas.")
+def main():
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = True
+    cur = conn.cursor()
+
+    # primero las tablas
+    run_script(cur, "sql/create_tables.sql")
+    # luego las funciones corregidas
+    run_script(cur, "sql/functions.sql")
+
+    cur.close()
+    conn.close()
+    print("✅ Tablas y funciones creadas o actualizadas correctamente")
+
+if __name__ == "__main__":
+    main()
