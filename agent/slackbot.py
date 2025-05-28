@@ -1,39 +1,79 @@
+#!/usr/bin/env python3
 import os
-from slack_bolt import App
-import psycopg2
 from datetime import datetime, timedelta
 
-# Configuración desde .env
-SLACK_BOT_TOKEN = os.environ['SLACK_BOT_TOKEN']
-SLASH_COMMAND   = os.environ.get('SLASH_COMMAND', '/ratio')
-TARGET_CHANNEL  = os.environ.get('TARGET_CHANNEL', '#finanzas')
+from flask import Flask, request, jsonify
+from slack_bolt import App
+from slack_bolt.adapter.flask import SlackRequestHandler
+import psycopg2
+from dotenv import load_dotenv
 
-app = App(token=SLACK_BOT_TOKEN)
+# 1) Carga variables de entorno desde .env
+load_dotenv(".env")
 
-# Helper de DB
+SLACK_BOT_TOKEN   = os.environ["SLACK_BOT_TOKEN"]
+SLASH_COMMAND     = os.environ.get("SLASH_COMMAND", "/ratio")
+TARGET_CHANNEL    = os.environ.get("TARGET_CHANNEL", "#finanzas")
+DATABASE_URL      = os.environ["DATABASE_URL"]
+PORT              = int(os.environ.get("PORT", 3000))
 
-def query_ratio(func, ticker, start, end):
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+# 2) Crea tu Bolt App
+bolt_app = App(
+    token=SLACK_BOT_TOKEN,
+    process_before_response=True,   # para que Bolt devuelva ack rápidamente
+)
+
+# 3) Helper para consultar la BD
+def query_ratio(func_name: str, ticker: str, start: datetime.date, end: datetime.date):
+    conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
-    cur.execute(f"SELECT {func}(%s,%s,%s)", (ticker, start, end))
+    cur.execute(f"SELECT {func_name}(%s, %s, %s);", (ticker, start, end))
     result = cur.fetchone()[0]
+    cur.close()
     conn.close()
     return result
 
-@app.command(SLASH_COMMAND)
+# 4) Slash command handler
+@bolt_app.command(SLASH_COMMAND)
 def handle_ratio(ack, respond, command):
     ack()
-    text = command['text']  # "AAPL PER 6m"
+    text = command["text"].strip()        # ej. "AAPL PER 6m"
     try:
         ticker, ratio, period = text.split()
         end = datetime.utcnow().date()
-        months = int(period[:-1]) if period.endswith('m') else int(period)
-        start = end - timedelta(days=months * 30)
-        func = ratio.lower() + '_avg'
-        result = query_ratio(func, ticker, start, end)
-        respond(f"*{ratio}* de {ticker} entre {start} y {end}: `{result:.2f}`", channel=TARGET_CHANNEL)
-    except Exception as e:
-        respond(f"Error procesando tu petición: {e}")
+        # interpretamos “6m” como 6 meses (aprox 6*30 días)
+        if period.endswith("m"):
+            months = int(period[:-1])
+            start = end - timedelta(days=months * 30)
+        else:
+            days = int(period)
+            start = end - timedelta(days=days)
 
+        func = ratio.lower() + "_avg"     # per_avg, roe_avg, ...
+        value = query_ratio(func, ticker, start, end)
+        if value is None:
+            respond(f"No hay datos para `{ratio}` de `{ticker}` en este periodo.", channel=TARGET_CHANNEL)
+        else:
+            respond(
+                f"*{ratio.upper()}* de *{ticker}* de `{start}` a `{end}`: `{value:.2f}`",
+                channel=TARGET_CHANNEL
+            )
+    except Exception as e:
+        respond(f":warning: Error procesando tu petición: `{e}`", channel=TARGET_CHANNEL)
+
+# 5) Monta Bolt dentro de Flask
+flask_app = Flask(__name__)
+handler = SlackRequestHandler(bolt_app)
+
+@flask_app.route("/", methods=["GET"])
+def healthcheck():
+    return jsonify({"status": "ok"}), 200
+
+@flask_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    return handler.handle(request)
+
+# 6) Arranque
 if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 3000)))
+    # Asegúrate de que el puerto 3000 está abierto en Codespaces
+    flask_app.run(host="0.0.0.0", port=PORT)
