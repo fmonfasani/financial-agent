@@ -11,6 +11,11 @@ services:
 
   app:
     build: .
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
     env_file:
       - .env
     ports:
