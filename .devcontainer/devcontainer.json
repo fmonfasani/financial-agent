@@ -3,7 +3,7 @@
   "dockerComposeFile": ["../docker-compose.yml"],
   "service": "app",
   "workspaceFolder": "/workspace",
-  "runServices": ["db","app"],
+  "runServices": ["db", "app"],
   "forwardPorts": [3000],
   "postCreateCommand": "pip install -r requirements.txt",
   "shutdownAction": "stopCompose"
