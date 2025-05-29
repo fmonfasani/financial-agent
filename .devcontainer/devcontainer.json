@@ -1,19 +1,12 @@
 {
   "name": "financial-agent",
-  // point at your compose file(s)
   "dockerComposeFile": [
     "../docker-compose.yml"
   ],
-  // which service in your compose to treat as the "app"
   "service": "app",
-  // where your code lives inside the container
   "workspaceFolder": "/workspace",
-  // which services to start up
-  "runServices": ["db", "app"],
-  // forwarding port 3000 from container → host
+  "runServices": ["db","app"],
   "forwardPorts": [3000],
-  // after the container is built, install your Python deps
   "postCreateCommand": "pip install -r requirements.txt",
-  // so Codespaces will stop your compose stack when you close
   "shutdownAction": "stopCompose"
 }
