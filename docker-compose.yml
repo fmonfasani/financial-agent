@@ -17,6 +17,7 @@ services:
       - "3000:3000"
     volumes:
       - .:/workspace
+    working_dir: /workspace
     command: bash -c "pip install -r requirements.txt && python agent/slackbot.py"
     depends_on:
       - db
