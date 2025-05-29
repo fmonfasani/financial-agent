@@ -1,16 +1,19 @@
 {
-  "name": "Financial Agent",
-  // Usa una imagen con Python y Docker ya instalados
-  "image": "mcr.microsoft.com/devcontainers/python:1.8",
-  "features": {
-    // Docker CLI
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
-  "postCreateCommand": "pip install -r requirements.txt",
-  "forwardPorts": [3000],
-  "onCreateCommand": "echo 'Container listo: pip y docker disponibles'",
-  "mounts": [
-    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  "name": "financial-agent",
+  // point at your compose file(s)
+  "dockerComposeFile": [
+    "../docker-compose.yml"
   ],
-  "remoteUser": "codespace"
+  // which service in your compose to treat as the "app"
+  "service": "app",
+  // where your code lives inside the container
+  "workspaceFolder": "/workspace",
+  // which services to start up
+  "runServices": ["db", "app"],
+  // forwarding port 3000 from container → host
+  "forwardPorts": [3000],
+  // after the container is built, install your Python deps
+  "postCreateCommand": "pip install -r requirements.txt",
+  // so Codespaces will stop your compose stack when you close
+  "shutdownAction": "stopCompose"
 }
