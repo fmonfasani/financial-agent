@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 5. Punto de entrada por defecto
-CMD ["bash", "-c", "python agent/slackbot.py"]
+CMD ["bash","-c","python app.py"]
