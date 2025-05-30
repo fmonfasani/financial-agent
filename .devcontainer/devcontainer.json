@@ -1,10 +1,18 @@
 {
   "name": "financial-agent",
-  "dockerComposeFile": ["../docker-compose.yml"],
-  "service": "app",
+  "image": "ghcr.io/tu_usuario/financial-agent-base:latest",
   "workspaceFolder": "/workspace",
   "runServices": ["db", "app"],
   "forwardPorts": [3000],
   "postCreateCommand": "pip install -r requirements.txt",
-  "shutdownAction": "stopCompose"
+  "shutdownAction": "stopCompose", "containerEnv": {
+  "DATABASE_URL": "${localEnv:DATABASE_URL}",
+  "PORT":           "${localEnv:PORT}",
+  "SLACK_APP_TOKEN":      "${localEnv:SLACK_APP_TOKEN}",
+  "SLACK_BOT_TOKEN":      "${localEnv:SLACK_BOT_TOKEN}",
+  "SLACK_SIGNING_SECRET": "${localEnv:SLACK_SIGNING_SECRET}",
+  "SLASH_COMMAND":        "${localEnv:SLASH_COMMAND}",
+  "TARGET_CHANNEL":       "${localEnv:TARGET_CHANNEL}",
+  "TICKERS":              "${localEnv:TICKERS}"
+ }
 }

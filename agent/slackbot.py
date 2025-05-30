@@ -6,11 +6,11 @@ from flask import Flask, request, jsonify
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
 import psycopg2
-from dotenv import load_dotenv
 
-# 1) Carga variables de entorno desde .env
-load_dotenv(".env")
 
+DATABASE_URL      = os.environ["DATABASE_URL"]
+SLACK_BOT_TOKEN   = os.environ["SLACK_BOT_TOKEN"]
+SLACK_SIGNING_SECRET = os.environ["SLACK_SIGNING_SECRET"]
 SLACK_BOT_TOKEN   = os.environ["SLACK_BOT_TOKEN"]
 SLASH_COMMAND     = os.environ.get("SLASH_COMMAND", "/ratio")
 TARGET_CHANNEL    = os.environ.get("TARGET_CHANNEL", "#finanzas")

@@ -1,7 +1,5 @@
 # Dockerfile
-FROM python:3.10-slim
+FROM ghcr.io/tu_usuario/financial-agent-base:latest
 WORKDIR /workspace
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 CMD ["bash","-c","python app.py"]
