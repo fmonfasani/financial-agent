@@ -1,14 +1,6 @@
 {
-  "name": "financial-agent",
-  "build": {
-    "dockerfile": "Dockerfile.base",           // tu Dockerfile “base”
-    "context": ".."                       // carpeta raíz del repo
-  },
-  "workspaceFolder": "/workspace",
-  "runServices": ["db","app"],
-  "forwardPorts": [3000],
-  "postCreateCommand": "pip install -r requirements.txt",
-  "shutdownAction": "stopCompose",
+  "image": "mcr.microsoft.com/devcontainers/python:3.10",
+  "postCreateCommand": "apt-get update && apt-get install -y postgresql-client && python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt",   
   "containerEnv": {
     "DATABASE_URL":      "${localEnv:DATABASE_URL}",
     "PORT":              "${localEnv:PORT}",
