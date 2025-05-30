@@ -1,30 +1,31 @@
  version: "3.8"
- services:
-   db:
-     image: postgres:15
-     environment:
-       POSTGRES_DB: finances
-       POSTGRES_USER: postgres
-       POSTGRES_PASSWORD: postgres
-     ports:
-       - "5432:5432"
 
-   app:
-     build: .
-     ports:
-       - "3000:3000"
-     volumes:
-       - .:/workspace
-     working_dir: /workspace
-     command: bash -c "python app.py"
-     depends_on:
-       - db
-     environment:
-      DATABASE_URL:      "${DATABASE_URL}"
-      PORT:              "${PORT}"
-      SLACK_APP_TOKEN:   "${SLACK_APP_TOKEN}"
-      SLACK_BOT_TOKEN:   "${SLACK_BOT_TOKEN}"
-      SLACK_SIGNING_SECRET: "${SLACK_SIGNING_SECRET}"
-      SLASH_COMMAND:     "${SLASH_COMMAND}"
-      TARGET_CHANNEL:    "${TARGET_CHANNEL}"
-      TICKERS:           "${TICKERS}"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: finances
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL:        "${DATABASE_URL}"
+      PORT:                "${PORT}"
+      SLACK_APP_TOKEN:     "${SLACK_APP_TOKEN}"
+      SLACK_BOT_TOKEN:     "${SLACK_BOT_TOKEN}"
+      SLACK_SIGNING_SECRET:"${SLACK_SIGNING_SECRET}"
+      SLASH_COMMAND:       "${SLASH_COMMAND}"
+      TARGET_CHANNEL:      "${TARGET_CHANNEL}"
+      TICKERS:             "${TICKERS}"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: bash -c "python app.py"
+    depends_on:
+      - db
